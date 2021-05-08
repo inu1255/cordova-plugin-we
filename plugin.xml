@@ -1,21 +1,32 @@
 <?xml version='1.0' encoding='utf-8'?>
-<plugin id="com" version="1.0.0" 
+<plugin id="cordova-plugin-we" version="1.0.0" 
 	xmlns="http://apache.org/cordova/ns/plugins/1.0" 
 	xmlns:android="http://schemas.android.com/apk/res/android">
-	<name>hudun</name>
-	<js-module name="hudun" src="www/hudun.js">
-		<clobbers target="cordova.plugins.hudun" />
+	<name>we</name>
+	<js-module name="we" src="www/we.js">
+		<clobbers target="window.__we" />
 	</js-module>
 	<platform name="android">
-		<config-file parent="/*" target="res/xml/config.xml">
-			<feature name="hudun">
-				<param name="android-package" value="com.hudun" />
+		<config-file target="res/xml/config.xml" parent="/*">
+			<feature name="we">
+				<param name="android-package" value="cn.inu1255.we.WePlugin" />
 			</feature>
 		</config-file>
-		<config-file parent="/*" target="AndroidManifest.xml"></config-file>
-		<source-file src="src/android/hudun.java" target-dir="src/com/hudun" />
-        <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application">
-            <application android:usesCleartextTraffic="true" android:requestLegacyExternalStorage="true" />
-        </edit-config>
+		<edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application">
+			<application android:usesCleartextTraffic="true" android:requestLegacyExternalStorage="true" />
+		</edit-config>
+		<config-file target="AndroidManifest.xml" parent="/manifest/application">
+			<provider android:name="android.support.v4.content.FileProvider" android:authorities="${applicationId}.fileprovider" android:exported="false" android:grantUriPermissions="true">
+				<meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/provider_paths" />
+			</provider>
+		</config-file>
+		<source-file src="src/android/xml/provider_paths.xml" target-dir="res/xml"/>
+		<source-file src="src/android/java/tools/ActivityTool.java" target-dir="src/cn/inu1255/we/tools" />
+		<source-file src="src/android/java/tools/ITool.java" target-dir="src/cn/inu1255/we/tools" />
+		<source-file src="src/android/java/tools/ScreenSize.java" target-dir="src/cn/inu1255/we/tools" />
+		<source-file src="src/android/java/CallbackFunction.java" target-dir="src/cn/inu1255/we" />
+		<source-file src="src/android/java/JSCallback.java" target-dir="src/cn/inu1255/we" />
+		<source-file src="src/android/java/We.java" target-dir="src/cn/inu1255/we" />
+		<source-file src="src/android/java/WePlugin.java" target-dir="src/cn/inu1255/we" />
 	</platform>
 </plugin>

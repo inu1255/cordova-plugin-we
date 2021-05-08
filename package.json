@@ -1,0 +1,19 @@
+{
+  "name": "cordova-plugin-we",
+  "version": "1.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/inu1255/cordova-plugin-we.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/inu1255/cordova-plugin-we/issues"
+  },
+  "homepage": "https://github.com/inu1255/cordova-plugin-we#readme"
+}
