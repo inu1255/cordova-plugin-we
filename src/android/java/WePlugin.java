@@ -28,7 +28,9 @@ public class WePlugin extends CordovaPlugin {
 		We.init(activity);
 		try {
 			WebView wv = (WebView) this.webView.getView();
-			wv.getSettings().setTextZoom(100);
+			wv.post(() -> {
+				wv.getSettings().setTextZoom(100);
+			});
 		} catch (Exception e) {
 		}
 	}

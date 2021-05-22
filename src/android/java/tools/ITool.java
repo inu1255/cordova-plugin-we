@@ -11,11 +11,13 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.AdaptiveIconDrawable;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.os.Build;
+import android.text.TextUtils;
 import android.util.Base64;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -23,18 +25,29 @@ import android.view.Display;
 import android.view.View;
 import android.view.WindowManager;
 
+import com.mobile.auth.gatewayauth.AuthUIConfig;
+
 import org.apache.cordova.CallbackContext;
 import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
 
 import cn.inu1255.we.CallbackFunction;
 import cn.inu1255.we.JSCallback;
@@ -86,6 +99,10 @@ public class ITool {
 			cb.success((Boolean) data ? 1 : 0);
 		else if (data instanceof Double)
 			cb.success(data.toString());
+		else if (data instanceof JSONObject)
+			cb.success((JSONObject) data);
+		else if (data instanceof JSONArray)
+			cb.success((JSONArray) data);
 		else cb.success();
 	}
 
@@ -172,7 +189,19 @@ public class ITool {
 				case "long":
 					params[i] = args.optLong(i);
 					break;
+				case "Drawable":
+					Object opt = args.opt(i);
+					if (opt instanceof Integer) {
+						ColorDrawable drawable = new ColorDrawable();
+						drawable.setColor((Integer) opt);
+						params[i] = drawable;
+					} else {
+
+					}
+					break;
 				case "Object":
+				case "JSCallback":
+				default:
 					if (isCallbackMethod(method) && i == parameterTypes.length - 1) {
 						params[i] = cb;
 					} else {
@@ -182,6 +211,58 @@ public class ITool {
 			}
 		}
 		return params;
+	}
+
+	public static String getUrlHash(String url) {
+		int i = url.indexOf('?');
+		String s = (i >= 0) ? url.substring(0, i) : url;
+		i = s.lastIndexOf('.');
+		return md5(url, null) + (i >= 0 ? s.substring(i) : "");
+	}
+
+
+	public static File downloadFile(final String urlpath, String filepath) {
+		File file = new File(filepath);
+		if (file.exists() && file.length() > 0) {
+			return file;
+		}
+		try {
+			URL url = new URL(urlpath);
+			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+			conn.setConnectTimeout(30000);
+			conn.setRequestMethod("GET");
+			if (conn.getResponseCode() == 200) {
+				InputStream is = null;
+				byte[] buf = new byte[2048];
+				int len = 0;
+				FileOutputStream fos = null;
+				// 储存下载文件的目录
+				try {
+					fos = new FileOutputStream(file);
+					while ((len = is.read(buf)) != -1) {
+						fos.write(buf, 0, len);
+					}
+					fos.flush();
+					return file;
+				} catch (Exception e) {
+					e.printStackTrace();
+				} finally {
+					try {
+						if (is != null)
+							is.close();
+					} catch (IOException e) {
+					}
+					try {
+						if (fos != null)
+							fos.close();
+					} catch (IOException e) {
+					}
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 	public static Bitmap drawable2Bitmap(Drawable icon) {
@@ -390,4 +471,47 @@ public class ITool {
 		return id;
 	}
 
+	public static JSONObject applyAll(Object obj, JSONObject config) {
+		JSONObject ret = new JSONObject();
+		if (obj == null) return ret;
+		Class<?> cls = obj.getClass();
+		Method[] methods = cls.getMethods();
+		HashMap<String, Method> map = new HashMap<>();
+		for (Method method : methods) {
+			map.put(method.getName(), method);
+		}
+		Iterator<String> keys = config.keys();
+		while (keys.hasNext()) {
+			String key = keys.next();
+			Method method = map.get(key);
+			if (method == null) continue;
+			Object[] objects = ITool.makeParams(method, config.optJSONArray(key), null);
+			try {
+				ret.put(key, method.invoke(obj, objects));
+			} catch (JSONException e) {
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				e.printStackTrace();
+			} catch (InvocationTargetException e) {
+				e.printStackTrace();
+			}
+		}
+		return ret;
+	}
+
+	public static String md5(String s, String algorithm) {
+		if (TextUtils.isEmpty(s))
+			return "";
+		if (TextUtils.isEmpty(algorithm))
+			algorithm = "MD5";
+		MessageDigest digest = null;
+		try {
+			digest = MessageDigest.getInstance(algorithm);
+			byte[] bytes = digest.digest(s.getBytes());
+			return ITool.toHexString(bytes);
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		}
+		return "";
+	}
 }

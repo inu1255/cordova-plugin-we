@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -16,10 +17,15 @@ import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
+import android.provider.MediaStore;
 import android.support.v4.content.FileProvider;
 import android.text.TextUtils;
 import android.webkit.WebView;
 import android.widget.Toast;
+
+import com.mobile.auth.gatewayauth.AuthUIConfig;
+import com.mobile.auth.gatewayauth.PhoneNumberAuthHelper;
+import com.mobile.auth.gatewayauth.TokenResultListener;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.PluginResult;
@@ -56,6 +62,7 @@ public class We {
 	private static Map<Integer, java.lang.Process> pmap = new HashMap<>();
 	private static Map<String, Method> methods;
 	public static CallbackContext ondataContext;
+	private static TokenResultListener tokenResultListener;
 
 	public static void init(Context context) {
 		if (methods != null) return;
@@ -66,6 +73,17 @@ public class We {
 				methods.put(method.getName(), method);
 			}
 		}
+		tokenResultListener = new TokenResultListener() {
+			@Override
+			public void onTokenSuccess(String s) {
+				We.emit("onTokenSuccess", s);
+			}
+
+			@Override
+			public void onTokenFailed(String s) {
+				We.emit("onTokenSuccess", s);
+			}
+		};
 	}
 
 	// 通用端
@@ -101,8 +119,54 @@ public class We {
 		send.setAction(Intent.ACTION_SEND);
 		Uri uri = FileProvider.getUriForFile(getContext(), getContext().getPackageName() + ".fileprovider", new File(filepath));
 		send.putExtra(Intent.EXTRA_STREAM, uri);
-		send.setType(TextUtils.isEmpty(type) ? "image/jpeg" : type);
+		if (TextUtils.isEmpty(type)) {
+			if (filepath.endsWith("png")) type = "image/png";
+			else if (filepath.endsWith("jpg")) type = "image/jpeg";
+		}
+		if (!TextUtils.isEmpty(type))
+			send.setType(type);
 		ActivityTool.startActivity(Intent.createChooser(send, getAppName()));
+	}
+
+	public static boolean saveImageToGallery(String filepath, String title, String description) {
+		Context context = getContext();
+		try {
+			MediaStore.Images.Media.insertImage(context.getContentResolver(), filepath, title, description);
+			return true;
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	private static PhoneNumberAuthHelper getOneKey() {
+		Context context = getContext();
+		return PhoneNumberAuthHelper.getInstance(context, tokenResultListener);
+	}
+
+	public static String getCurrentCarrierName() {
+		return getOneKey().getCurrentCarrierName();
+	}
+
+	//	type 1：本机号码校验 2: ⼀键登录
+	public static void checkEnvAvailable(int type) {
+		getOneKey().checkEnvAvailable(type == 0 ? 2 : type);
+	}
+
+	public static void setAuthSDKInfo(String s) {
+		getOneKey().setAuthSDKInfo(s);
+	}
+
+	public static JSONObject setAuthUIConfig(JSONObject config) {
+		AuthUIConfig.Builder builder = new AuthUIConfig.Builder();
+		JSONObject ret = ITool.applyAll(builder, config);
+		getOneKey().setAuthUIConfig(builder.create());
+		return ret;
+	}
+
+	@CallbackFunction
+	public static void getLoginToken(int timeout, JSCallback cb) {
+		getOneKey().getLoginToken(getContext(), timeout);
 	}
 
 	public static int setDebug(int debug) {
@@ -112,10 +176,10 @@ public class We {
 		return 1;
 	}
 
-	public static void emit(String s) {
+	public static void emit(String type, String s) {
 		if (ondataContext != null) {
 			try {
-				PluginResult result = new PluginResult(PluginResult.Status.OK, s);
+				PluginResult result = new PluginResult(PluginResult.Status.OK, type + "\n" + s);
 				result.setKeepCallback(true);
 				ondataContext.sendPluginResult(result);
 			} catch (Exception e) {
@@ -429,19 +493,7 @@ public class We {
 	}
 
 	public static String md5(String s, String algorithm) {
-		if (TextUtils.isEmpty(s))
-			return "";
-		if (TextUtils.isEmpty(algorithm))
-			algorithm = "MD5";
-		MessageDigest digest = null;
-		try {
-			digest = MessageDigest.getInstance(algorithm);
-			byte[] bytes = digest.digest(s.getBytes());
-			return ITool.toHexString(bytes);
-		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
-		}
-		return "";
+		return ITool.md5(s, algorithm);
 	}
 
 	private static File getFile(String name) {
@@ -484,9 +536,9 @@ public class We {
 		return getFile(name).getAbsolutePath();
 	}
 
-	public static int mkdirs(String name) {
+	public static boolean mkdirs(String name) {
 		File file = getFile(name);
-		return file.mkdirs() ? 1 : 0;
+		return file.mkdirs();
 	}
 
 	public static String readFile(String name) {
@@ -503,20 +555,20 @@ public class We {
 		return "";
 	}
 
-	public static int writeFile(String name, String b64) {
+	public static boolean writeFile(String name, String b64) {
 		File file = getFile(name);
 		if (b64 == null) {
-			return (file.delete()) ? 1 : 0;
+			return (file.delete());
 		}
 		try {
 			FileOutputStream stream = new FileOutputStream(file);
 			byte[] bytes = ITool.base642Bytes(b64);
 			stream.write(bytes);
-			return 1;
+			return true;
 		} catch (FileNotFoundException e) {
 		} catch (IOException e) {
 		}
-		return 0;
+		return false;
 	}
 
 	public static int copyFile(String src, String dst) {
