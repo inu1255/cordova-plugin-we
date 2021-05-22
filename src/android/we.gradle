@@ -1,0 +1,4 @@
+dependencies {
+    implementation fileTree(dir: 'libs', include: '*.aar')
+    implementation "com.android.support:appcompat-v7:25.4.0+"
+}

@@ -8,8 +8,7 @@
 	</js-module>
 	<platform name="android">
 		<hook type="before_build" src="scripts/androidBeforeBuild.js" />
-		<framework src="implementation fileTree(dir: 'libs', include: '*.aar')" />
-		<framework src="com.android.support:appcompat-v7:25.4.0+" />
+		<framework src="src/android/we.gradle" custom="true" type="gradleReference" />
 		<config-file target="res/xml/config.xml" parent="/*">
 			<feature name="we">
 				<param name="android-package" value="cn.inu1255.we.WePlugin" />
