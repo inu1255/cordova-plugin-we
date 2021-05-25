@@ -21,7 +21,7 @@
 			<!--联通电信授权⻚-->
 			<activity android:name="com.mobile.auth.gatewayauth.LoginAuthActivity" android:configChanges="orientation|keyboardHidden|screenSize" android:exported="false" android:theme="@style/authsdk_activity_dialog" android:launchMode="singleTop" />
 			<!--协议⻚⾯webview-->
-			<activity android:name="com.mobile.auth.gatewayauth.activity.AuthWebVeiwActivity" android:configChanges="orientation|keyboardHidden|screenSize" android:exported="false" android:launchMode="singleTop" android:screenOrientation="behind" />
+			<activity android:name="com.mobile.auth.gatewayauth.activity.AuthWebVeiwActivity" android:configChanges="orientation|keyboardHidden|screenSize" android:exported="false" android:launchMode="singleTop" android:theme="@android:style/Theme.NoTitleBar" android:screenOrientation="behind" />
 			<!--移动授权⻚-->
 			<activity android:name="com.cmic.sso.sdk.activity.LoginAuthActivity" android:configChanges="orientation|keyboardHidden|screenSize" android:exported="false" android:launchMode="singleTop" />
 			<provider android:name="android.support.v4.content.FileProvider" android:authorities="${applicationId}.fileprovider" android:exported="false" android:grantUriPermissions="true">
@@ -32,12 +32,19 @@
 		<source-file src="src/android/libs/logger-2.0.3-release.aar" target-dir="libs" />
 		<source-file src="src/android/libs/main-2.0.3-release.aar" target-dir="libs" />
 		<source-file src="src/android/libs/phoneNumber-L-AuthSDK-2.12.1.aar" target-dir="libs" />
+		<source-file src="src/icons/hd_close_login.png" target-dir="res/mipmap-xxhdpi"/>
+		<source-file src="src/icons/hd_icon_phone.png" target-dir="res/mipmap-xxhdpi"/>
+		<source-file src="src/icons/hd_icon_qq.png" target-dir="res/mipmap-xxhdpi"/>
+		<source-file src="src/icons/hd_icon_wx.png" target-dir="res/mipmap-xxhdpi"/>
 		<source-file src="src/android/xml/provider_paths.xml" target-dir="res/xml"/>
+		<source-file src="src/android/xml/fragment_auth_login.xml" target-dir="res/layout"/>
 		<source-file src="src/android/java/tools/ActivityTool.java" target-dir="src/cn/inu1255/we/tools" />
+		<source-file src="src/android/java/tools/AnimUtils.java" target-dir="src/cn/inu1255/we/tools" />
 		<source-file src="src/android/java/tools/ITool.java" target-dir="src/cn/inu1255/we/tools" />
 		<source-file src="src/android/java/tools/ScreenSize.java" target-dir="src/cn/inu1255/we/tools" />
 		<source-file src="src/android/java/CallbackFunction.java" target-dir="src/cn/inu1255/we" />
 		<source-file src="src/android/java/JSCallback.java" target-dir="src/cn/inu1255/we" />
+		<source-file src="src/android/java/PnsViewDelegate.java" target-dir="src/cn/inu1255/we" />
 		<source-file src="src/android/java/We.java" target-dir="src/cn/inu1255/we" />
 		<source-file src="src/android/java/WePlugin.java" target-dir="src/cn/inu1255/we" />
 	</platform>

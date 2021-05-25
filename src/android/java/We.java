@@ -9,7 +9,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.graphics.drawable.Drawable;
+import android.graphics.Color;
 import android.net.Uri;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -20,10 +20,14 @@ import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.v4.content.FileProvider;
 import android.text.TextUtils;
+import android.view.Gravity;
 import android.webkit.WebView;
 import android.widget.Toast;
 
+import com.hudun.swdt.R;
+import com.mobile.auth.gatewayauth.AuthRegisterXmlConfig;
 import com.mobile.auth.gatewayauth.AuthUIConfig;
+import com.mobile.auth.gatewayauth.AuthUIControlClickListener;
 import com.mobile.auth.gatewayauth.PhoneNumberAuthHelper;
 import com.mobile.auth.gatewayauth.TokenResultListener;
 
@@ -43,8 +47,6 @@ import java.lang.reflect.Modifier;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -76,12 +78,12 @@ public class We {
 		tokenResultListener = new TokenResultListener() {
 			@Override
 			public void onTokenSuccess(String s) {
-				We.emit("onTokenSuccess", s);
+				We.emit("onekey", s);
 			}
 
 			@Override
 			public void onTokenFailed(String s) {
-				We.emit("onTokenSuccess", s);
+				We.emit("onekey", s);
 			}
 		};
 	}
@@ -148,6 +150,10 @@ public class We {
 		return getOneKey().getCurrentCarrierName();
 	}
 
+	public static void quitLoginPage() {
+		getOneKey().quitLoginPage();
+	}
+
 	//	type 1：本机号码校验 2: ⼀键登录
 	public static void checkEnvAvailable(int type) {
 		getOneKey().checkEnvAvailable(type == 0 ? 2 : type);
@@ -162,6 +168,23 @@ public class We {
 		JSONObject ret = ITool.applyAll(builder, config);
 		getOneKey().setAuthUIConfig(builder.create());
 		return ret;
+	}
+
+	public static void setAuthXMLConfig(JSONObject config) {
+		PhoneNumberAuthHelper oneKey = getOneKey();
+		oneKey.removeAuthRegisterXmlConfig();
+		oneKey.removeAuthRegisterViewConfig();
+		AuthRegisterXmlConfig.Builder xmlConfig = new AuthRegisterXmlConfig.Builder();
+		PnsViewDelegate pnsViewDelegate = new PnsViewDelegate(config);
+		xmlConfig.setLayout(R.layout.fragment_auth_login, pnsViewDelegate);
+		oneKey.addAuthRegisterXmlConfig(xmlConfig.build());
+		oneKey.setUIClickListener((code, context1, s1) -> {
+			switch (code) {
+				case "700002": // 点击一键登录
+					pnsViewDelegate.checkLogin();
+					break;
+			}
+		});
 	}
 
 	@CallbackFunction

@@ -59,8 +59,11 @@ public class ITool {
 	public static int nav_height = 0; // 顶部高度
 	public static int btn_height = 0; // 底部高度
 	public static int dpi = 1;
+	private static float density;
+	private static Context context;
 
 	public static void init(Context context) {
+		ITool.context = context;
 		WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
 		Display defaultDisplay = windowManager.getDefaultDisplay();
 		DisplayMetrics metrics = new DisplayMetrics();
@@ -71,9 +74,14 @@ public class ITool {
 		btn_height = getNavigationBarHeight(context);
 		width = metrics.widthPixels;
 		height = metrics.heightPixels;
+		density = resources.getDisplayMetrics().density;
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.DONUT) {
 			dpi = metrics.densityDpi;
 		}
+	}
+
+	public static int dp2px(float dpValue) {
+		return (int) (dpValue * density + 0.5f);
 	}
 
 	public static void info(Object msg) {
@@ -195,8 +203,17 @@ public class ITool {
 						ColorDrawable drawable = new ColorDrawable();
 						drawable.setColor((Integer) opt);
 						params[i] = drawable;
-					} else {
-
+					} else if (opt instanceof String) {
+						if (((String) opt).startsWith("#")) {
+							ColorDrawable drawable = new ColorDrawable();
+							drawable.setColor(Color.parseColor((String) opt));
+							params[i] = drawable;
+						} else {
+							Bitmap bitmap = ITool.base642Bitmap((String) opt);
+							params[i] = new BitmapDrawable(context.getResources(), bitmap);
+						}
+					} else if (opt instanceof Drawable) {
+						params[i] = opt;
 					}
 					break;
 				case "Object":
