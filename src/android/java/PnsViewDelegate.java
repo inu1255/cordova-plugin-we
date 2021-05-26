@@ -89,8 +89,7 @@ public class PnsViewDelegate extends AbstractPnsViewDelegate {
 				We.emit("goto", "qqLogin");
 		});
 		phoneLogin.setOnClickListener(view1 -> {
-			if (checkLogin())
-				We.emit("goto", "phoneLogin");
+			We.emit("goto", "phoneLogin");
 		});
 	}
 }
