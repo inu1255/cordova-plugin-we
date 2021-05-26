@@ -18,6 +18,7 @@ import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
 import android.provider.MediaStore;
+import android.provider.Settings;
 import android.support.v4.content.FileProvider;
 import android.text.TextUtils;
 import android.webkit.WebView;
@@ -30,6 +31,7 @@ import com.mobile.auth.gatewayauth.TokenResultListener;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.PluginResult;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -186,7 +188,7 @@ public class We {
 
 	public static JSONObject setAuthUIConfig(JSONObject config) {
 		AuthUIConfig.Builder builder = new AuthUIConfig.Builder();
-		JSONObject ret = ITool.applyAll(builder, config);
+		JSONObject ret = ITool.callObject(builder, config);
 		getOneKey().setAuthUIConfig(builder.create());
 		return ret;
 	}
@@ -538,6 +540,53 @@ public class We {
 
 	public static String md5(String s, String algorithm) {
 		return ITool.md5(s, algorithm);
+	}
+
+	public static JSONObject callUri(JSONObject config) {
+		return ITool.callClass(Uri.class, config);
+	}
+
+	public static void open(JSONObject cfg) {
+		Context context = getContext();
+		Intent intent = new Intent();
+		if (cfg.has("category"))
+			intent.addCategory(cfg.optString("category"));
+		if (cfg.has("flags"))
+			intent.setFlags(cfg.optInt("flags"));
+		if (cfg.has("action"))
+			intent.setAction(cfg.optString("action"));
+		if (cfg.has("package"))
+			intent.setPackage(cfg.optString("package"));
+		if (cfg.has("class"))
+			intent.setClassName(cfg.optString("package"), cfg.optString("class"));
+		if (cfg.has("url"))
+			intent.setData(Uri.parse(cfg.optString("url")));
+		JSONArray categories = cfg.optJSONArray("categories");
+		if (categories != null) {
+			int length = categories.length();
+			for (int i = 0; i < length; i++) {
+				String s = categories.optString(i);
+				if (s != null)
+					intent.addCategory(s);
+			}
+		}
+		JSONObject extras = cfg.optJSONObject("extras");
+		if (extras != null) {
+			for (Iterator<String> it = extras.keys(); it.hasNext(); ) {
+				String k = it.next();
+				Object value = extras.opt(k);
+				k = k.substring(1);
+				if (value instanceof Integer)
+					intent.putExtra(k, (Integer) value);
+				else if (value instanceof String)
+					intent.putExtra(k, (String) value);
+				else if (value instanceof Boolean)
+					intent.putExtra(k, (Boolean) value);
+				else if (value instanceof Float)
+					intent.putExtra(k, (Float) value);
+			}
+		}
+		context.startActivity(intent);
 	}
 
 	private static File getFile(String name) {

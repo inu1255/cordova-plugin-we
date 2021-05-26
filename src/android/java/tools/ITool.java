@@ -41,6 +41,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.MessageDigest;
@@ -488,7 +489,35 @@ public class ITool {
 		return id;
 	}
 
-	public static JSONObject applyAll(Object obj, JSONObject config) {
+	public static JSONObject callClass(Class cls, JSONObject config) {
+		JSONObject ret = new JSONObject();
+		if (cls == null) return ret;
+		Method[] methods = cls.getMethods();
+		HashMap<String, Method> map = new HashMap<>();
+		for (Method method : methods) {
+			if (Modifier.isStatic(method.getModifiers()))
+				map.put(method.getName(), method);
+		}
+		Iterator<String> keys = config.keys();
+		while (keys.hasNext()) {
+			String key = keys.next();
+			Method method = map.get(key);
+			if (method == null) continue;
+			Object[] objects = ITool.makeParams(method, config.optJSONArray(key), null);
+			try {
+				ret.put(key, method.invoke(null, objects));
+			} catch (JSONException e) {
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				e.printStackTrace();
+			} catch (InvocationTargetException e) {
+				e.printStackTrace();
+			}
+		}
+		return ret;
+	}
+
+	public static JSONObject callObject(Object obj, JSONObject config) {
 		JSONObject ret = new JSONObject();
 		if (obj == null) return ret;
 		Class<?> cls = obj.getClass();
