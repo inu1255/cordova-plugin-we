@@ -6,12 +6,12 @@ import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
-import com.hudun.swdt.R;
 import com.mobile.auth.gatewayauth.ui.AbstractPnsViewDelegate;
 
 import org.json.JSONObject;
 
 import cn.inu1255.we.tools.AnimUtils;
+import cn.inu1255.we.tools.ITool;
 
 public class PnsViewDelegate extends AbstractPnsViewDelegate {
 	private static ObjectAnimator objAnim;
@@ -34,11 +34,10 @@ public class PnsViewDelegate extends AbstractPnsViewDelegate {
 
 	@Override
 	public void onViewCreated(View view) {
-
-		View wechatLogin = findViewById(R.id.btn_wechat_login);
-		View qqLogin = findViewById(R.id.btn_qq_login);
-		View phoneLogin = findViewById(R.id.btn_phone_login);
-		ImageView ivLogo = (ImageView) findViewById(R.id.iv_logo);
+		View wechatLogin = findViewById(ITool.getIdByName(getContext().getPackageName(), "id", "btn_wechat_login"));
+		View qqLogin = findViewById(ITool.getIdByName(getContext().getPackageName(), "id", "btn_qq_login"));
+		View phoneLogin = findViewById(ITool.getIdByName(getContext().getPackageName(), "id", "btn_phone_login"));
+		ImageView ivLogo = (ImageView) findViewById(ITool.getIdByName(getContext().getPackageName(), "id", "iv_logo"));
 
 		if (config.optBoolean("wechatLogin"))
 			wechatLogin.setVisibility(View.VISIBLE);
@@ -53,18 +52,18 @@ public class PnsViewDelegate extends AbstractPnsViewDelegate {
 		else
 			phoneLogin.setVisibility(View.GONE);
 
-		ivLogo.setImageResource(R.mipmap.ic_launcher);
+		ivLogo.setImageResource(ITool.getIdByName(getContext().getPackageName(), "mipmap", "ic_launcher"));
 
 		view.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
 			@Override
 			public void onViewAttachedToWindow(View v) {
 				View root = v.getRootView();
-				View mProtocolView = root.findViewById(R.id.authsdk_protocol_view);
-				checkBox = root.findViewById(R.id.authsdk_checkbox_view);
+				View mProtocolView = root.findViewById(ITool.getIdByName(getContext().getPackageName(), "id", "authsdk_protocol_view"));
+				checkBox = root.findViewById(ITool.getIdByName(getContext().getPackageName(), "id", "authsdk_checkbox_view"));
 				if (mProtocolView != null) {
 					objAnim = AnimUtils.getShakeByPropertyAnim(mProtocolView, 1f, 1f, 2f, 800);
 					RelativeLayout.LayoutParams rl = (RelativeLayout.LayoutParams) mProtocolView.getLayoutParams();
-					rl.addRule(RelativeLayout.BELOW, R.id.authsdk_login_view);
+					rl.addRule(RelativeLayout.BELOW, ITool.getIdByName(getContext().getPackageName(), "id", "authsdk_login_view"));
 					rl.topMargin = 60;
 				}
 			}
@@ -76,7 +75,7 @@ public class PnsViewDelegate extends AbstractPnsViewDelegate {
 			}
 		});
 
-		findViewById(R.id.img_exit_wechat).setOnClickListener(view1 -> {
+		findViewById(ITool.getIdByName(getContext().getPackageName(), "id", "img_exit_wechat")).setOnClickListener(view1 -> {
 			We.emit("goto", "-1");
 		});
 

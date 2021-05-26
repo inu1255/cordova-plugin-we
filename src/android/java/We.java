@@ -7,9 +7,9 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.net.Uri;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -20,19 +20,17 @@ import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.v4.content.FileProvider;
 import android.text.TextUtils;
-import android.view.Gravity;
 import android.webkit.WebView;
 import android.widget.Toast;
 
-import com.hudun.swdt.R;
 import com.mobile.auth.gatewayauth.AuthRegisterXmlConfig;
 import com.mobile.auth.gatewayauth.AuthUIConfig;
-import com.mobile.auth.gatewayauth.AuthUIControlClickListener;
 import com.mobile.auth.gatewayauth.PhoneNumberAuthHelper;
 import com.mobile.auth.gatewayauth.TokenResultListener;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.PluginResult;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
@@ -109,6 +107,33 @@ public class We {
 		return getContext().getString(labelRes);
 	}
 
+	public static JSONObject getAppInfo() {
+		Context context = getContext();
+		ApplicationInfo applicationInfo = context.getApplicationInfo();
+		String packageName = context.getPackageName();
+
+		JSONObject json = new JSONObject();
+		try {
+			json.put("name", context.getString(applicationInfo.labelRes));
+			json.put("package", packageName);
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		try {
+			PackageManager manager = context.getPackageManager();
+			PackageInfo info = manager.getPackageInfo(packageName, 0);
+			json.put("version", info.versionName);
+			json.put("versionCode", info.versionCode);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return json;
+	}
+
+	public static String get() {
+		return getContext().getPackageName();
+	}
+
 	public static void shareText(String text) {
 		Intent send = new Intent(Intent.ACTION_SEND);
 		send.setType("text/plain");
@@ -146,10 +171,6 @@ public class We {
 		return PhoneNumberAuthHelper.getInstance(context, tokenResultListener);
 	}
 
-	public static String getCurrentCarrierName() {
-		return getOneKey().getCurrentCarrierName();
-	}
-
 	public static void quitLoginPage() {
 		getOneKey().quitLoginPage();
 	}
@@ -176,7 +197,7 @@ public class We {
 		oneKey.removeAuthRegisterViewConfig();
 		AuthRegisterXmlConfig.Builder xmlConfig = new AuthRegisterXmlConfig.Builder();
 		PnsViewDelegate pnsViewDelegate = new PnsViewDelegate(config);
-		xmlConfig.setLayout(R.layout.fragment_auth_login, pnsViewDelegate);
+		xmlConfig.setLayout(ITool.getIdByName(getContext().getPackageName(), "layout", "fragment_auth_login"), pnsViewDelegate);
 		oneKey.addAuthRegisterXmlConfig(xmlConfig.build());
 		oneKey.setUIClickListener((code, context1, s1) -> {
 			switch (code) {
