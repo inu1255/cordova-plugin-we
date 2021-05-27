@@ -1,4 +1,7 @@
 dependencies {
-    implementation fileTree(dir: 'libs', include: '*.aar')
+    implementation (name: 'crashshield-2.0.3-release', ext: 'aar')
+    implementation (name: 'logger-2.0.3-release', ext: 'aar')
+    implementation (name: 'main-2.0.3-release', ext: 'aar')
+    implementation (name: 'phoneNumber-L-AuthSDK-2.12.1', ext: 'aar')
     implementation "com.android.support:appcompat-v7:25.4.0+"
 }
