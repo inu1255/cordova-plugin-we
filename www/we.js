@@ -26,7 +26,6 @@ function ondata() {
 exec(ondata, console.error, FEATURE_NAME, "ondata", []);
 exec(init, console.error, FEATURE_NAME, "init", []);
 var events = {};
-var eventCache = {};
 function callEvent(type, data) {
 	eventCache[type] = data;
 	var listens = events[type];
@@ -68,11 +67,6 @@ __we.on = function (type, cb) {
 	if (typeof cb === "function") {
 		var listens = events[type] || (events[type] = []);
 		if (listens.indexOf(cb) < 0) listens.push(cb);
-		var c = eventCache[type];
-		if (c) {
-			cb(c);
-			delete eventCache[type];
-		}
 	}
 };
 __we.once = function (type, cb) {
@@ -84,11 +78,6 @@ __we.once = function (type, cb) {
 			we.off(type, fn);
 		}
 		(events[type] || (events[type] = [])).push(fn);
-		var c = eventCache[type];
-		if (c) {
-			fn(c);
-			delete eventCache[type];
-		}
 	});
 };
 __we.off = function (type, cb) {
@@ -104,7 +93,6 @@ __we.off = function (type, cb) {
 };
 __we.offAll = function () {
 	events = {};
-	eventCache = {};
 };
 
 module.exports = __we;
