@@ -69,7 +69,10 @@ __we.on = function (type, cb) {
 		var listens = events[type] || (events[type] = []);
 		if (listens.indexOf(cb) < 0) listens.push(cb);
 		var c = eventCache[type];
-		if (c) cb(c);
+		if (c) {
+			cb(c);
+			delete eventCache[type];
+		}
 	}
 };
 __we.once = function (type, cb) {
@@ -82,7 +85,10 @@ __we.once = function (type, cb) {
 		}
 		(events[type] || (events[type] = [])).push(fn);
 		var c = eventCache[type];
-		if (c) fn(c);
+		if (c) {
+			fn(c);
+			delete eventCache[type];
+		}
 	});
 };
 __we.off = function (type, cb) {
