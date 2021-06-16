@@ -27,7 +27,6 @@ exec(ondata, console.error, FEATURE_NAME, "ondata", []);
 exec(init, console.error, FEATURE_NAME, "init", []);
 var events = {};
 function callEvent(type, data) {
-	eventCache[type] = data;
 	var listens = events[type];
 	if (!listens) return;
 	listens.forEach(function (cb, i) {
