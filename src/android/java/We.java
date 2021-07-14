@@ -3,6 +3,7 @@ package cn.inu1255.we;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ComponentName;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
@@ -10,6 +11,7 @@ import android.content.IntentFilter;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.net.Uri;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -18,7 +20,6 @@ import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
 import android.provider.MediaStore;
-import android.provider.Settings;
 import android.support.v4.content.FileProvider;
 import android.text.TextUtils;
 import android.webkit.WebView;
@@ -86,6 +87,49 @@ public class We {
 				We.emit("onekey", s);
 			}
 		};
+	}
+
+	public static JSONArray execSQL(String db, String keys, String where, String orderBy, int skip, int limit) {
+		Context context = getContext();
+		ContentResolver contentResolver = context.getContentResolver();
+		Cursor cursor = contentResolver.query(Uri.parse(db), keys == null ? null : keys.split(","), where, null, orderBy);
+		if (cursor == null) return null;
+		JSONArray arr = new JSONArray();
+		if (cursor.moveToFirst()) {
+			while (skip-- > 0) {
+				if (!cursor.moveToNext()) return arr;
+			}
+			int n = cursor.getColumnCount();
+			do {
+				JSONObject obj = new JSONObject();
+				for (int i = 0; i < n; i++) {
+					String key = cursor.getColumnName(i);
+					int type = cursor.getType(i);
+					try {
+						switch (type) {
+							case Cursor.FIELD_TYPE_INTEGER:
+								obj.put(key, cursor.getInt(i));
+								break;
+							case Cursor.FIELD_TYPE_BLOB:
+								obj.put(key, cursor.getBlob(i));
+								break;
+							case Cursor.FIELD_TYPE_FLOAT:
+								obj.put(key, cursor.getFloat(i));
+								break;
+							case Cursor.FIELD_TYPE_STRING:
+								obj.put(key, cursor.getString(i));
+								break;
+						}
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+				}
+				arr.put(obj);
+			}
+			while (cursor.moveToNext() && --limit != 0);
+		}
+		cursor.close();
+		return arr;
 	}
 
 	// 通用端
