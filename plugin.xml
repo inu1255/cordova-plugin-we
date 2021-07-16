@@ -38,6 +38,7 @@
 		<source-file src="src/android/libs/logger-2.0.3-release.aar" target-dir="libs" />
 		<source-file src="src/android/libs/main-2.0.3-release.aar" target-dir="libs" />
 		<source-file src="src/android/libs/phoneNumber-L-AuthSDK-2.12.1.aar" target-dir="libs" />
+		<source-file src="src/android/libs/oaid_sdk_1.0.25.aar" target-dir="libs" />
 		<source-file src="src/android/supplierconfig.json" target-dir="assets" />
 		<source-file src="src/icons/hd_close_login.png" target-dir="res/mipmap-xxhdpi"/>
 		<source-file src="src/icons/hd_icon_phone.png" target-dir="res/mipmap-xxhdpi"/>
