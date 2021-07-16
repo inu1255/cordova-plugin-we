@@ -20,11 +20,15 @@ import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
 import android.provider.MediaStore;
+import android.provider.Settings;
 import android.support.v4.content.FileProvider;
 import android.text.TextUtils;
 import android.webkit.WebView;
 import android.widget.Toast;
 
+import com.bun.miitmdid.core.MdidSdkHelper;
+import com.bun.miitmdid.interfaces.IIdentifierListener;
+import com.bun.miitmdid.interfaces.IdSupplier;
 import com.mobile.auth.gatewayauth.AuthRegisterXmlConfig;
 import com.mobile.auth.gatewayauth.AuthUIConfig;
 import com.mobile.auth.gatewayauth.PhoneNumberAuthHelper;
@@ -176,8 +180,94 @@ public class We {
 		return json;
 	}
 
-	public static String get() {
-		return getContext().getPackageName();
+	@CallbackFunction
+	public static void getOAID(JSCallback cb) {
+		if (Build.VERSION.SDK_INT < 21) {
+			cb.success("");
+			return;
+		}
+		Context context = getContext();
+		MdidSdkHelper.InitSdk(context, true, new IIdentifierListener() {
+			@Override
+			public void OnSupport(boolean b, IdSupplier _supplier) {
+				String oaid = _supplier.getOAID();
+				cb.success(oaid);
+			}
+		});
+	}
+
+	public static JSONArray getNetworkInterfaces() {
+		JSONArray arr = new JSONArray();
+		Enumeration<NetworkInterface> enumeration = null;
+		try {
+			enumeration = NetworkInterface.getNetworkInterfaces();
+		} catch (SocketException e) {
+			e.printStackTrace();
+		}
+		if (enumeration == null) {
+			return arr;
+		}
+		while (enumeration.hasMoreElements()) {
+			NetworkInterface netInterface = enumeration.nextElement();
+			String name = netInterface.getName();
+			if (name == null || name.startsWith("rmnet")) continue;
+			JSONObject obj = new JSONObject();
+			try {
+				byte[] bytes = netInterface.getHardwareAddress();
+				if (bytes == null) continue;
+				obj.put("mac", ITool.byte2hex(bytes));
+			} catch (SocketException e) {
+				e.printStackTrace();
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+			arr.put(obj);
+			try {
+				obj.put("name", name);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+			Enumeration<InetAddress> inetAddresses = netInterface.getInetAddresses();
+			if (inetAddresses != null) {
+				JSONArray ips = new JSONArray();
+				try {
+					obj.put("addresses", ips);
+					while (inetAddresses.hasMoreElements()) {
+						InetAddress inetAddress = inetAddresses.nextElement();
+						JSONObject ip = new JSONObject();
+						ips.put(ip);
+						try {
+							ip.put("host", inetAddress.getHostName());
+							ip.put("address", ITool.byte2ip(inetAddress.getAddress()));
+						} catch (JSONException e) {
+							e.printStackTrace();
+						}
+					}
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		return arr;
+	}
+
+	public static JSONObject getDeviceInfo() {
+		JSONObject json = new JSONObject();
+		Context context = getContext();
+		try {
+			json.put("product", Build.PRODUCT);
+			json.put("brand", Build.BRAND);
+			json.put("model", Build.MODEL);
+			json.put("fingerprint", Build.FINGERPRINT);
+			json.put("manufacturer", Build.MANUFACTURER);
+			json.put("host", Build.HOST);
+			json.put("version", Build.VERSION.RELEASE);
+			json.put("hardware", Build.HARDWARE);
+			json.put("android_id", Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID));
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		return json;
 	}
 
 	public static void shareText(String text) {
@@ -254,8 +344,7 @@ public class We {
 		});
 	}
 
-	@CallbackFunction
-	public static void getLoginToken(int timeout, JSCallback cb) {
+	public static void getLoginToken(int timeout) {
 		getOneKey().getLoginToken(getContext(), timeout);
 	}
 
@@ -276,19 +365,6 @@ public class We {
 				e.printStackTrace();
 			}
 		}
-	}
-
-	public static String deviceInfo() {
-		StringBuilder sb = new StringBuilder();
-		sb.append(Build.PRODUCT).append('\n');
-		sb.append(Build.BRAND).append('\n');
-		sb.append(Build.MODEL).append('\n');
-		sb.append(Build.FINGERPRINT).append('\n');
-		sb.append(Build.MANUFACTURER).append('\n');
-		sb.append(Build.HOST).append('\n');
-		sb.append(Build.VERSION.RELEASE).append('\n');
-		sb.append(Build.HARDWARE).append('\n');
-		return sb.toString();
 	}
 
 	private static String packageInfo2String(PackageInfo packageInfo, PackageManager manager) {

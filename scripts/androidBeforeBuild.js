@@ -8,10 +8,18 @@ async function main() {
 		"main-2.0.3-release.aar",
 		"phoneNumber-L-AuthSDK-2.12.1.aar",
 	];
-	for (let file of list) {
-		if (await fs.pathExists(file)) {
-			let data = await fs.readFile(file);
-			await fs.writeFile(path.join("cordova/platforms/android/app/libs", file), data);
+	console.log("一键登录模块");
+	for (let key of list) {
+		let srcpath = path.join(process.cwd(), "res/libs/", key);
+		let dstpath = path.join("cordova/platforms/android/app/libs", key);
+		if (await fs.pathExists(srcpath)) {
+			let data = await fs.readFile(srcpath);
+			await fs.writeFile(dstpath, data);
+			console.log("复制", key);
+		} else if (await fs.pathExists(dstpath)) {
+			console.log("使用默认的", key);
+		} else {
+			console.error("缺少", key);
 		}
 	}
 }
