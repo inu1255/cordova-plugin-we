@@ -127,6 +127,38 @@ public class ITool {
 		return result;
 	}
 
+	public static String byte2hex(byte[] bytes) {
+		if (bytes == null) return null;
+		StringBuilder sb = new StringBuilder();
+		for (byte b : bytes) {
+			sb.append(String.format("%02X:", b));
+		}
+		if (sb.length() > 0) {
+			sb.deleteCharAt(sb.length() - 1);
+		}
+		return sb.toString();
+	}
+
+	public static String byte2ip(byte[] bytes) {
+		if (bytes == null) return null;
+		StringBuilder sb = new StringBuilder();
+		if (bytes.length == 4) {
+			for (byte b : bytes) {
+				sb.append(new Integer(b & 0xFF).toString());
+				sb.append(".");
+			}
+		} else {
+			for (int i = 0; i < bytes.length; i++) {
+				sb.append(String.format("%02X", bytes[i]));
+				if (i % 2 > 0) sb.append(":");
+			}
+		}
+		if (sb.length() > 0) {
+			sb.deleteCharAt(sb.length() - 1);
+		}
+		return sb.toString();
+	}
+
 	public static String streamToString(InputStream is) {
 		BufferedReader reader = new BufferedReader(new InputStreamReader(is));
 		StringBuilder sb = new StringBuilder();
