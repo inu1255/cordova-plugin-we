@@ -4,5 +4,5 @@ dependencies {
     implementation (name: 'main-2.0.3-release', ext: 'aar')
     implementation (name: 'phoneNumber-L-AuthSDK-2.12.1', ext: 'aar')
     implementation (name: 'oaid_sdk_1.0.25', ext: 'aar')
-    implementation "com.android.support:appcompat-v7:25.4.0+"
+    implementation "com.android.support:appcompat-v7:25.4.0"
 }
