@@ -295,6 +295,7 @@ public class We {
 		Context context = getContext();
 		try {
 			MediaStore.Images.Media.insertImage(context.getContentResolver(), filepath, title, description);
+			context.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(new File(filepath))));
 			return true;
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -666,8 +667,7 @@ public class We {
 		return ITool.callClass(Uri.class, config);
 	}
 
-	public static void open(JSONObject cfg) {
-		Context context = getContext();
+	private static Intent toIntent(JSONObject cfg) {
 		Intent intent = new Intent();
 		if (cfg.has("category"))
 			intent.addCategory(cfg.optString("category"));
@@ -706,7 +706,17 @@ public class We {
 					intent.putExtra(k, (Float) value);
 			}
 		}
-		context.startActivity(intent);
+		return intent;
+	}
+
+	public static void sendBroadcast(JSONObject cfg) {
+		Context context = getContext();
+		context.sendBroadcast(toIntent(cfg), cfg.optString("s", null));
+	}
+
+	public static void open(JSONObject cfg) {
+		Context context = getContext();
+		context.startActivity(toIntent(cfg));
 	}
 
 	private static File getFile(String name) {
